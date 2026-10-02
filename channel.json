@@ -1,0 +1,5 @@
+{
+  "channel": "stable",
+  "target": "esp32-s3",
+  "managed_by": "Fernando Lab"
+}
