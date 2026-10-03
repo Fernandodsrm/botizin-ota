@@ -26,8 +26,8 @@ jobs:
           SHA=$(sha256sum golden/firmware.bin | awk '{print $1}')
           echo "BYTES=$BYTES"
           echo "SHA=$SHA"
-          test "$BYTES" = "1119136"
-          test "$SHA" = "9e37c76688879ab62f25540a62b7af45e2d8ca532339e179ef7c6244b3e1b03a"
+          test "$BYTES" = "1119168"
+          test "$SHA" = "fb239412a4515272d77d0b40019e09bb7ec8b52847e26e50460ac2ffbb1b8d40"
       - name: Commit firmware
         shell: bash
         run: |
