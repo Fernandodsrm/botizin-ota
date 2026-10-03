@@ -1,0 +1,30 @@
+name: Assemble Public OTA Firmware
+
+on:
+  push:
+    paths:
+      - ".github/workflows/assemble-ota.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble and verify firmware
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat staging/firmware-a.b64 staging/firmware-b.b64 | base64 -d > firmware.bin
+          ACTUAL=$(sha256sum firmware.bin | awk '{print $1}')
+          EXPECTED="a1357216dcf11c47478b03b0372ef93daf3be0bc0a0297d73837a1f985f71e7c"
+          echo "SIZE=$(wc -c < firmware.bin)"
+          echo "SHA256=$ACTUAL"
+          test "$ACTUAL" = "$EXPECTED"
+          git config user.name "botizin-ota-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -f firmware.bin
+          git commit -m "Fix Botizin S3 OTA 0.1.12 binary"
+          git push origin HEAD:main
