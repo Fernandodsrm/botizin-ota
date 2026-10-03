@@ -28,12 +28,19 @@ jobs:
           echo "SHA=$SHA"
           test "$BYTES" = "1149088"
           test "$SHA" = "73dd217666df6c0c9c23571cb32939b5df2009dbe4157d2b80e519760eed1ad0"
-      - name: Commit firmware
+      - name: Publish recovery manifest and firmware
         shell: bash
         run: |
           set -euo pipefail
+          cat > golden/manifest.json <<'EOF'
+          {
+            "version": "1.0.1",
+            "url": "https://raw.githubusercontent.com/Fernandodsrm/botizin-ota/main/golden/firmware.bin",
+            "sha256": "73dd217666df6c0c9c23571cb32939b5df2009dbe4157d2b80e519760eed1ad0"
+          }
+          EOF
           git config user.name "botizin-ota-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add -f golden/firmware.bin
-          git commit -m "Publish recovery 1.0.1 firmware" || exit 0
+          git add -f golden/firmware.bin golden/manifest.json
+          git commit -m "Publish recovery 1.0.1 firmware and manifest" || exit 0
           git push origin HEAD:main
