@@ -1,0 +1,39 @@
+name: Assemble Golden OTA Firmware
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "golden/staging-a.b64"
+      - "golden/staging-b.b64"
+      - ".github/workflows/assemble-golden.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat golden/staging-a.b64 golden/staging-b.b64 > /tmp/golden.b64
+          base64 -d /tmp/golden.b64 > golden/firmware.bin
+          BYTES=$(wc -c < golden/firmware.bin)
+          SHA=$(sha256sum golden/firmware.bin | awk '{print $1}')
+          echo "BYTES=$BYTES"
+          echo "SHA=$SHA"
+          test "$BYTES" = "1119136"
+          test "$SHA" = "9e37c76688879ab62f25540a62b7af45e2d8ca532339e179ef7c6244b3e1b03a"
+      - name: Commit firmware
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "botizin-ota-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -f golden/firmware.bin
+          git commit -m "Publish Golden OTA 1.0.1 firmware" || exit 0
+          git push origin HEAD:main
