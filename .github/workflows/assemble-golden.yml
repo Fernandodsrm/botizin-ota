@@ -20,14 +20,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat golden/staging-a.b64 golden/staging-b.b64 > /tmp/golden.b64
+          cat golden/recovery-a.b64 golden/recovery-b.b64 > /tmp/golden.b64
           base64 -d /tmp/golden.b64 > golden/firmware.bin
           BYTES=$(wc -c < golden/firmware.bin)
           SHA=$(sha256sum golden/firmware.bin | awk '{print $1}')
           echo "BYTES=$BYTES"
           echo "SHA=$SHA"
-          test "$BYTES" = "1119168"
-          test "$SHA" = "fb239412a4515272d77d0b40019e09bb7ec8b52847e26e50460ac2ffbb1b8d40"
+          test "$BYTES" = "1149088"
+          test "$SHA" = "73dd217666df6c0c9c23571cb32939b5df2009dbe4157d2b80e519760eed1ad0"
       - name: Commit firmware
         shell: bash
         run: |
@@ -35,5 +35,5 @@ jobs:
           git config user.name "botizin-ota-bot"
           git config user.email "actions@users.noreply.github.com"
           git add -f golden/firmware.bin
-          git commit -m "Publish Golden OTA 1.0.1 firmware" || exit 0
+          git commit -m "Publish recovery 1.0.1 firmware" || exit 0
           git push origin HEAD:main
