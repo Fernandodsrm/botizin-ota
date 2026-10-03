@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Botizin Remote</title>
+<style>
+body{font-family:Arial,sans-serif;background:#07191d;color:#edf7f8;margin:0;padding:22px}
+main{max-width:720px;margin:auto;background:#0b272d;border:1px solid #245a64;border-radius:22px;padding:22px}
+h1{color:#ffd84d}.ok{color:#58e7a6}.bad{color:#ff8295}.box{background:#071f24;border:1px solid #214b54;border-radius:14px;padding:14px;margin:12px 0}
+button{padding:14px 18px;margin:6px;border:0;border-radius:12px;background:#176277;color:#fff;font-weight:bold;font-size:16px}
+small,code{color:#9fc1c7}.row{display:flex;flex-wrap:wrap}.row button{flex:1;min-width:140px}
+</style>
+</head>
+<body><main>
+<h1>FERNANDO LAB / BOTIZIN REMOTE</h1>
+<div class="box">
+<p>Broker: <b id="broker">conectando...</b></p>
+<p>S3: <b id="online">aguardando...</b></p>
+<p>Firmware: <b id="version">—</b></p>
+<p>Wi-Fi: <b id="wifi">—</b></p>
+<p>RSSI: <b id="rssi">—</b></p>
+<p>Heap: <b id="heap">—</b></p>
+<p>Uptime: <b id="uptime">—</b></p>
+<p>OTA: <b id="ota">—</b></p>
+<p>Último comando: <b id="lastcmd">—</b></p>
+<p>Último evento: <b id="event">—</b></p>
+</div>
+<div class="row">
+<button onclick="send('PING')">PING</button>
+<button onclick="send('OTA_CHECK')">VERIFICAR OTA</button>
+</div>
+<p><small>Golden Base 1.0.x — laboratório MQTT. O broker atual é público e será trocado por um privado depois da prova de conceito.</small></p>
+</main>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script>
+const prefix='fernando-lab/8d0be4dd7f9a4a38a5be03f90b53d721/botizin-s3';
+const client=mqtt.connect('wss://broker.emqx.io:8084/mqtt',{
+  clientId:'botizin_web_'+Math.random().toString(16).slice(2),
+  clean:true,keepalive:30,reconnectPeriod:2000,connectTimeout:10000
+});
+const $=id=>document.getElementById(id);
+client.on('connect',()=>{ $('broker').textContent='ONLINE';$('broker').className='ok';client.subscribe([prefix+'/state',prefix+'/event',prefix+'/online']);});
+client.on('offline',()=>{$('broker').textContent='OFFLINE';$('broker').className='bad';});
+client.on('error',()=>{$('broker').textContent='ERRO';$('broker').className='bad';});
+client.on('message',(topic,payload)=>{
+  const text=payload.toString();
+  if(topic.endsWith('/online')){ $('online').textContent=text;$('online').className=text==='ONLINE'?'ok':'bad';return; }
+  if(topic.endsWith('/event')){ $('event').textContent=text;return; }
+  if(topic.endsWith('/state')){
+    try{
+      const s=JSON.parse(text);
+      $('version').textContent=s.version||'—';
+      $('wifi').textContent=s.wifi?'ONLINE':'OFFLINE';
+      $('wifi').className=s.wifi?'ok':'bad';
+      $('online').textContent=s.mqtt?'ONLINE':'OFFLINE';
+      $('online').className=s.mqtt?'ok':'bad';
+      $('rssi').textContent=(s.rssi??'—')+' dBm';
+      $('heap').textContent=(s.heapKb??'—')+' KB';
+      $('uptime').textContent=(s.uptimeS??'—')+' s';
+      $('ota').textContent=s.ota||'—';
+      $('lastcmd').textContent=s.lastCommand||'—';
+    }catch(e){}
+  }
+});
+function send(cmd){client.publish(prefix+'/cmd',cmd,{qos:0,retain:false});$('lastcmd').textContent=cmd+' enviado';}
+</script></body></html>
