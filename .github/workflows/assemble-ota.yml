@@ -19,12 +19,12 @@ jobs:
           set -euo pipefail
           cat staging/firmware-a.b64 staging/firmware-b.b64 | base64 -d > firmware.bin
           ACTUAL=$(sha256sum firmware.bin | awk '{print $1}')
-          EXPECTED="d52415fae381df0a51d4060a4aa578040f9924dba4100164a28f8b943f827528"
+          EXPECTED="678c2aa453ae50383978c8cf72cadce5e1b69a517b05612314df17a2ec7a800c"
           echo "SIZE=$(wc -c < firmware.bin)"
           echo "SHA256=$ACTUAL"
           test "$ACTUAL" = "$EXPECTED"
           git config user.name "botizin-ota-bot"
           git config user.email "actions@users.noreply.github.com"
           git add -f firmware.bin
-          git commit -m "Fix Botizin S3 OTA 0.1.14 binary"
+          git commit -m "Fix Botizin S3 OTA 0.1.15 binary"
           git push origin HEAD:main
